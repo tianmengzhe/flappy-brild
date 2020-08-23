@@ -16,12 +16,15 @@ const bird = {
     pipeLastIndex: 6,
     pipeDistance:230,
     score:0,
+    scoreArr:[],
     init(){
         this.initData()
         this.animate()
         this.handleStart()
         this.handleClick()
-        
+        if(sessionStorage.getItem('play')){
+            this.start()
+        }
     },
     initData(){ // 初始化
         this.el = document.querySelector("#app")
@@ -32,8 +35,8 @@ const bird = {
         this.oEnd = this.el.querySelector('.end') 
         this.oRank = this.el.querySelector('.rank')
         this.oFilalScore = this.el.querySelector('.final-score')
-        
-        
+        this.oReStart = this.el.querySelector('.reStart')
+        this.scoreArr = getLocal('score') || []
     },
     animate(){
         let count = 0
@@ -117,15 +120,32 @@ const bird = {
         this.obird.style.display = "none"
         this.oScore.style.display = "none"
         this.oFilalScore.innerText = this.score
+        this.setScore()
         this.renderList()// 分数列表
     },
+    setScore(){
+        this.scoreArr.push({
+            score:this.score,
+            time: this.getDate()
+        })
+        this.scoreArr.sort((a,b)=>{
+            return b.score - a.score
+        })
+        let len = this.scoreArr.length
+        this.scoreArr.length = len > 7 ? 8:len
+        setLocal('score', this.scoreArr)
+    },
     renderList(){
-        const template = `<li class="rank-item">
-            <span class="rank-degree">1</span>
-            <span class="rank-score">5</span>
-            <span class="rank-time">2020-08-16</span>
-        </li>
-        `
+        let template = ''
+        let scoreArr = getLocal('score') || []
+        scoreArr.forEach(({score,time},i)=>{
+            template += `<li class="rank-item">
+                <span class="rank-degree">${i+1}</span>
+                <span class="rank-score">${score}</span>
+                <span class="rank-time">${time}</span>
+            </li>`
+        })
+        this.oRank.innerHTML = template
     },
     pipeMove(){
         for(var i = 0; i < this.pipeLength; i++){
@@ -179,18 +199,30 @@ const bird = {
         const _this = this
         this.oSatrt.onclick = function(e){
             e.stopPropagation()
-            
-            this.style.display = 'none'
-            _this.oScore.style.display = 'block'
-            _this.skyStep = 5
-            _this.obird.style.left = "80px"
-            _this.obird.style.transition = "none"
-            _this.startFlag = true
+            _this.start()
+        }
 
-            for(var i = 0; i < _this.pipeLength; i++){
-                _this.createPipe(_this.pipeDistance*(i+1))// 生成柱子
-            }
-            
+        // 重新开始
+        this.oReStart.onclick = function(e){
+            e.stopPropagation()
+            sessionStorage.setItem('play',true)
+            _this.pipeArr.forEach(item=>{
+                item.up.remove()
+                item.down.remove()
+            })
+            window.location.reload()
+        }
+    },
+    start(){
+        this.oSatrt.style.display = 'none'
+        this.oScore.style.display = 'block'
+        this.skyStep = 5
+        this.obird.style.left = "80px"
+        this.obird.style.transition = "none"
+        this.startFlag = true
+
+        for(var i = 0; i < this.pipeLength; i++){
+            this.createPipe(this.pipeDistance*(i+1))// 生成柱子
         }
     },
     handleClick(){ 
@@ -198,6 +230,39 @@ const bird = {
         this.el.onclick = function(){
             _this.birdStepY = -10
         }
+    },
+    getDate(){
+        let d = new Date()
+        let year = d.getFullYear() 
+        let month = d.getMonth()+1
+        let day = d.getDate() 
+        let houer = d.getHours() 
+        let min = d.getMinutes() 
+        let second = d.getSeconds() 
+
+        month = month>10 ? month : '0'+month
+        day = day>10 ? day : '0'+day
+        houer = houer>10 ? houer : '0'+houer
+        min = min>10 ? min : '0'+min
+        second = second>10 ? second : '0'+second
+
+        return `${year}-${month}-${day} ${houer}:${min}:${second}`
     }
 }
 bird.init()
+
+
+function setLocal(key, val){
+    if(typeof val === 'object' && val !== null){
+        val = JSON.stringify(val)
+    }
+    localStorage.setItem('score',val)
+}
+function getLocal(key){
+    let value = localStorage.getItem(key) 
+    if(value === null){return value}
+    if(value[0] === '[' || value[0] === '{'){
+        value = JSON.parse(value)
+    }   
+    return value
+}
