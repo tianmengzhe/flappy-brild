@@ -49,6 +49,8 @@
     font-size: 20px;
     font-weight: bold;
     color: blue;
+    user-select: none;
+    z-index: 1;
 }
 
 .mask{

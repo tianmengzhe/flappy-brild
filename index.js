@@ -15,6 +15,7 @@ const bird = {
     pipeArr:[],
     pipeLastIndex: 6,
     pipeDistance:230,
+    score:0,
     init(){
         this.initData()
         this.animate()
@@ -26,7 +27,13 @@ const bird = {
         this.el = document.querySelector("#app")
         this.obird = this.el.querySelector('.bird')
         this.oSatrt = this.el.querySelector('.start')
-        this.score = this.el.querySelector('.score') 
+        this.oScore = this.el.querySelector('.score') 
+        this.oMask = this.el.querySelector('.mask') 
+        this.oEnd = this.el.querySelector('.end') 
+        this.oRank = this.el.querySelector('.rank')
+        this.oFilalScore = this.el.querySelector('.final-score')
+        
+        
     },
     animate(){
         let count = 0
@@ -66,6 +73,14 @@ const bird = {
         this.birdTop += ++this.birdStepY  // 加速下落
         this.obird.style.top = this.birdTop +'px'
         this.judgeKnock()
+        this.addScore()
+    },
+    addScore(){ // 加分
+        let index = this.score % this.pipeLength  // 当前接近小鸟的柱子
+        let pX = this.pipeArr[index].up.offsetLeft // 上柱子的left
+        if(pX < 13){ 
+            this.oScore.innerText = ++this.score
+        }
     },
     judgeKnock(){ // 碰撞检测
         this.judgeBoundary() // 是否触底
@@ -74,17 +89,43 @@ const bird = {
     judgeBoundary(){
         // top = 0  minTop
         // bottom = 容器高 - 鸟高 maxTop
-       
         if(this.birdTop <= this.minTop || this.birdTop >= this.maxTop){
             this.failGame()
         }
     },
     judegPipe(){ // 是否触发柱子
-
+        /**
+         * 安全范围
+         * 上下安全距离 上柱子高度 ~~~ 上柱子高度-150
+         * 触碰安全距离  
+         *      95 小鸟与柱子左边在 y轴相遇  小鸟宽30 + 小鸟left80 + margin-left-15
+         *      13 小鸟与柱子右边前 y轴相遇  柱子宽52 + 柱子left + 小鸟margin-left-15 < 80
+         * */ 
+        let index = this.score % this.pipeLength
+        let pX = this.pipeArr[index].up.offsetLeft // 上柱子的left
+        let pY = this.pipeArr[index].y
+        let birdY = this.birdTop
+        if((pX <= 95 && pX > 13) && (birdY <= pY[0] || birdY >= pY[1])){
+            this.failGame()
+        }   
     },
     failGame(){ // 游戏失败
         clearInterval(this.skyTime)
         this.skyTime = null
+        this.oMask.style.display = "block"
+        this.oEnd.style.display = "block"
+        this.obird.style.display = "none"
+        this.oScore.style.display = "none"
+        this.oFilalScore.innerText = this.score
+        this.renderList()// 分数列表
+    },
+    renderList(){
+        const template = `<li class="rank-item">
+            <span class="rank-degree">1</span>
+            <span class="rank-score">5</span>
+            <span class="rank-time">2020-08-16</span>
+        </li>
+        `
     },
     pipeMove(){
         for(var i = 0; i < this.pipeLength; i++){
@@ -115,7 +156,8 @@ const bird = {
 
         this.pipeArr.push({
             up:odiv,
-            down:odiv2
+            down:odiv2,
+            y:[upH,upH+150]// 安全距离
         })
     },
     crearteEle(eleName,classArr,styleObj){
@@ -139,7 +181,7 @@ const bird = {
             e.stopPropagation()
             
             this.style.display = 'none'
-            _this.score.style.display = 'block'
+            _this.oScore.style.display = 'block'
             _this.skyStep = 5
             _this.obird.style.left = "80px"
             _this.obird.style.transition = "none"
