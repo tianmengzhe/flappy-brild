@@ -5,6 +5,7 @@
     background-image: url(../images/sky.png);
     /* background-position-x: 1px; 背景移动 */
     position: relative;
+    overflow: hidden;
 }
 
 .bird{
@@ -15,6 +16,7 @@
     top: 253px;
     margin-left: -15px;
     left: 50%;
+    transition: top .3s linear;
     /* transform: translate(-50%,-50%); */
 }
 
@@ -28,6 +30,7 @@
     text-align: center;
     line-height: 60px;
     font-weight: bold;
+    transition: all .2s;
 }
 .start-white{
     color: #fff;
@@ -39,6 +42,7 @@
 }
 
 .score{
+    display: none;
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
@@ -48,6 +52,7 @@
 }
 
 .mask{
+    display: none;
     position: absolute;
     top: 0;
     right: 0;
@@ -58,6 +63,7 @@
 }
 
 .end{
+    display: none;
     position: absolute;
     left: 50%;
     top: 70px;
@@ -117,4 +123,20 @@
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
+}
+
+.pipe{
+    position: absolute;
+    width: 50px;
+    background-size: 100% auto;
+}
+.pipe-up{
+    top: 0;
+    background-image: url(../images/pipe2.png);
+    background-position-y: 100%;
+    
+}
+.pipe-down{
+    bottom: 0;
+    background-image: url(../images/pipe1.png);
 }
